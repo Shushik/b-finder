@@ -770,13 +770,16 @@
 						undone : $.proxy(row_undone,  $row)
 					},
 					{
-						id   : id,
-						pid  : pid,
-						next : next,
-						name : $row.text(),
-						action : event.altKey ?
-						         'remove' :
-						         'approve'
+						id         : id,
+						pid        : pid,
+						next       : next,
+						name       : $row.text(),
+						action     : event.altKey ?
+						             'remove' :
+						             'approve',
+						expandable : $row.hasClass('b-finder__row_expandable_yes') ?
+						             true :
+						             false
 					},
 					params
 				);
