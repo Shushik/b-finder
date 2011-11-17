@@ -183,7 +183,10 @@
 											'' +
 											'<div class="b-finder__filter"></div>' +
 											'<div class="b-finder__clear">×</div>' +
-											'<input class="b-finder__field" type="search">' +
+											'<input ' +
+												'class="b-finder__field" ' +
+												'autocomplete="off" ' +
+											'>' +
 										'</div>' +
 										'<div class="b-finder__hide">×</div>' +
 										'<div class="b-finder__hat"></div>' +
