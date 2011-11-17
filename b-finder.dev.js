@@ -903,7 +903,7 @@
 				'b-finder__cols_mode_watch'
 			).addClass(
 				'b-finder__cols_mode_search'
-			);
+			).scrollLeft(0);
 
 			if ($this.hasClass('b-finder__field')) {
 				needle = $this.val();
