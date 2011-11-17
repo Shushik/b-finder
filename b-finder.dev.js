@@ -971,7 +971,6 @@
 				$finder = $(this).closest('.b-finder'),
 				$window = $('.b-finder__window', $finder),
 				$cols   = $('.b-finder__cols_active_yes', $window),
-				$field  = $('.b-finder__field', $window),
 				first   = null;
 
 			// Switch mode to «watch»
@@ -985,9 +984,22 @@
 			$('.b-finder__found', $cols).empty();
 
 			// Clean search field
-			$field.val('').blur();
+			$(
+				'.b-finder__field',
+				$window
+			).val(
+				''
+			).blur();
 
-			//
+			// Deactivate filter button
+			$(
+				'.b-finder__filter',
+				$window
+			).removeClass(
+				'b-finder__filter_active_yes'
+			);
+
+			// Get first row to select
 			first = row_first.call($cols);
 
 			// Expand rows
