@@ -2,8 +2,7 @@
 
 
 	/**
-	 * Finder — macos like viewer of tree structured data.
-	 * Based on jQuery
+	 * b-finder — viewer of tree structured data
 	 *
 	 * @version 3.0
 	 * @author  Shushik <silkleopard@yandex.ru>
@@ -249,7 +248,7 @@
 				}
 			);
 
-			//
+			// Click at filter`s button
 			$window.delegate(
 				'.b-finder__filter',
 				'click',
@@ -269,14 +268,14 @@
 				}
 			);
 
-			//
+			// Click at cross at search field
 			$window.delegate(
 				'.b-finder__clear',
 				'click',
 				filters_off
 			);
 
-			//
+			// Hover at column with focus
 			$window.delegate(
 				'.b-finder__col',
 				'mouseover',
@@ -285,7 +284,7 @@
 				}
 			);
 
-			//
+			// Click at item in list
 			$window.delegate(
 				'.b-finder__row',
 				'mousedown',
@@ -731,34 +730,27 @@
 				           false :
 				           true,
 				next     = ($col.data('level') - 0) + 1,
+				action   = $row.hasClass('b-finder__row_selected_yes') ?
+				           'cancel' :
+				           'approve',
 				pid      = $group.data('id'),
 				id       = $row.data('id');
 
 			// If there`s no user`s handler or it`s not a function
 			// do nothing
-			if (
-				typeof handler == 'function' &&
-				!$row.hasClass('b-finder__row_selected_yes') ||
-				typeof handler == 'function' &&
-				event.altKey
-			) {
+			if (typeof handler == 'function') {
 				// Clear previous selections
-				if (clear) {
+				if (clear && action == 'approve') {
 					$cols.data('b_finder_clear', true);
 				}
 
-
-				if (event.altKey) {
-					// Turn off selection
+				if (action == 'cancel') {
+					// Revert selection to cancel
 					$row.addClass('b-finder__row_cancel_yes');
 				}
 
 				// Turn on loader
-				$row.removeClass(
-					'b-finder__row_expanded_yes'
-				).addClass(
-					'b-finder__row_loading_yes'
-				);
+				$row.addClass('b-finder__row_loading_yes');
 
 				// Call user`s handler for double click event
 				handler.call(
@@ -774,9 +766,7 @@
 						pid        : pid,
 						next       : next,
 						name       : $row.text(),
-						action     : event.altKey ?
-						             'remove' :
-						             'approve',
+						action     : action,
 						expandable : $row.hasClass('b-finder__row_expandable_yes') ?
 						             true :
 						             false
@@ -800,13 +790,13 @@
 				$cols = this,
 				first = null;
 
-			//
+			// Get the first selected row
 			first = $(
 				'.b-finder__row_selected_yes:first',
 				$cols
 			).get(0);
 
-			//
+			// Get any row
 			if (!first) {
 				first = $(
 					'.b-finder__group_id_root .b-finder__row:first',
@@ -841,6 +831,7 @@
 				$cols.removeData('b_finder_clear');
 			}
 
+			// Remove selection from row or set it
 			if ($row.hasClass('b-finder__row_cancel_yes')) {
 				$row.removeClass('b-finder__row_selected_yes');
 			} else {
