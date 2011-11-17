@@ -7,7 +7,7 @@ body
 
 .b-finder
 {
-	font-family: Arial, Verdana, sans-serif;
+	font-family: Verdana, Arial, sans-serif;
 	font-size:   0.8em;
 
 	position: fixed;
@@ -62,12 +62,12 @@ body
 
 .b-finder__hide
 {
-	font-size: 1.8em;
+	font-size: 1.6em;
 
 	cursor:   pointer;
 	position: absolute;
 	top:      0;
-	right:    0.2em;
+	right:    0.1em;
 
 	color: #968A72;
 
@@ -77,7 +77,7 @@ body
 
 .b-finder__hint
 {
-	font-size: 0.9em;
+	font-size: 0.8em;
 
 	text-align: center;
 
@@ -93,11 +93,11 @@ body
 
 .b-finder__clear
 {
-	font-size: 1.2em;
+	font-size: 1.1em;
 
 	cursor:   pointer;
 	position: absolute;
-	top:      0;
+	top:      -0.1em;
 	left:     147px;
 
 	color: #968A72;
@@ -263,7 +263,7 @@ body
 .b-finder__row_expanded_yes,
 .b-finder .b-finder__row_expanded_yes:hover
 {
-	background: #D4D4D4;
+	background: #DCD5AE;
 }
 
 .b-finder .b-finder__row_selected_yes,
@@ -291,11 +291,5 @@ body
 
 .b-finder__highlight
 {
-	padding: 0.1em;
-
-	background: #C5DFF9;
-
-	-webkit-border-radius: 0.3em;
-	-moz-border-radius: 0.3em;
-	border-radius: 0.3em;
+	font-weight: bold;
 }
