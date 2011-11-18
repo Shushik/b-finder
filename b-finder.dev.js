@@ -11,8 +11,6 @@
 	 * @page    http://github.com/Shushik/b-finder
 	 *
 	 * @requires jQuery 1.4+
-<<<<<<< HEAD
-=======
 	 *
 	 * @example
 	 * <code>
@@ -29,7 +27,6 @@
 	 *         }
 	 *     );
 	 * </code>
->>>>>>> JS Refactoring
 	 *
 	 * @public
 	 * @method
@@ -37,11 +34,6 @@
 	 * @param {Number|String} id
 	 *
 	 * @param {Object}        handlers
-<<<<<<< HEAD
-	 *     @option
-	 * @param {Object}        params
-	 *     @option
-=======
 	 *     @option {Function} load     handler that loads content for columns structure generation
 	 *         @param {Object} a hash with properties given in .finder() method
 	 *
@@ -69,7 +61,6 @@
 	 *         @option {String} hint     short hint in the bottom of the window
 	 *         @option {String} search   search field placeholder
 	 *         @option {String} selected title hint for filter of selected rows
->>>>>>> JS Refactoring
 	 *
 	 * @return {Object}
 	 */
@@ -345,11 +336,7 @@
 				}
 			);
 
-<<<<<<< HEAD
-			// Click at item in list
-=======
 			// Single click at item
->>>>>>> JS Refactoring
 			$window.delegate(
 				'.b-finder__row',
 				'click',
