@@ -11,15 +11,65 @@
 	 * @page    http://github.com/Shushik/b-finder
 	 *
 	 * @requires jQuery 1.4+
+<<<<<<< HEAD
+=======
+	 *
+	 * @example
+	 * <code>
+	 *     $('.b-finder').finder(
+	 *         'iddqd',
+	 *         {
+	 *             load     : function(ext) {},
+	 *             click    : function(ext) {},
+	 *             dblclick : function(ext) {}
+	 *         },
+	 *         {
+	 *             param1 : 'value1',
+	 *             param2 : 'value2',
+	 *         }
+	 *     );
+	 * </code>
+>>>>>>> JS Refactoring
 	 *
 	 * @public
 	 * @method
 	 *
 	 * @param {Number|String} id
+	 *
 	 * @param {Object}        handlers
+<<<<<<< HEAD
 	 *     @option
 	 * @param {Object}        params
 	 *     @option
+=======
+	 *     @option {Function} load     handler that loads content for columns structure generation
+	 *         @param {Object} a hash with properties given in .finder() method
+	 *
+	 *     @option {Function} click    handler for single click (optional)
+	 *         @param {Event}  event variable
+	 *         @param {Object} a hash with information about clicked row
+	 *         @param {Object} a hash with properties given in .finder() method
+	 *
+	 *     @option {Function} dblclick handler for double click
+	 *         @param {Event}  event variable
+	 *         @param {Object} a hash with several finder methods
+	 *             @option {Function} done   successful ending of selection
+	 *             @option {Function} undone unsuccessful ending of selection
+	 *             @option {Function} close  close finder
+	 *         @param {Object} a hash with information about clicked row
+	 *         @param {Object} a hash with properties given in .finder() method
+	 *
+	 * @param {Object}        params
+	 *     @option {Boolean} finder_holder   true if you don`t need extra end empty column
+	 *     @option {Boolean} finder_multiple true if you want a multiselect mode
+	 *     @option {Number}  finder_cols     number of columns shown in one window (1 — 4)
+	 *     @option {Object}  an array with the row ids, that should be selected by default
+	 *     @option {Object}  a hash with text values for different ui elements
+	 *         @option {String} hat      title in the top of the window
+	 *         @option {String} hint     short hint in the bottom of the window
+	 *         @option {String} search   search field placeholder
+	 *         @option {String} selected title hint for filter of selected rows
+>>>>>>> JS Refactoring
 	 *
 	 * @return {Object}
 	 */
@@ -63,7 +113,7 @@
 				$finder = this,
 				$window = $(window),
 				$cols   = $('.b-finder__cols_id_' + id, $finder),
-				start   = null;
+				first   = null;
 
 			// Close Finder by clicking at empty space
 			$window.bind(
@@ -138,9 +188,10 @@
 			$cols.data('b_finder_prescroll', true);
 
 			// Initiate first expanding
-			start = row_first.call($cols);
+			first = row_first.call($cols);
 
-			$(start).mousedown();
+			//
+			row_expand.call(first, null, true);
 
 			// Show finder block
 			$finder.removeClass('b-finder_hidden_yes');
@@ -294,64 +345,61 @@
 				}
 			);
 
+<<<<<<< HEAD
 			// Click at item in list
+=======
+			// Single click at item
+>>>>>>> JS Refactoring
 			$window.delegate(
 				'.b-finder__row',
-				'mousedown',
+				'click',
 				function(event) {
 					var
-						$row    = $(this),
-						$cols   = $row.closest('.b-finder__cols'),
-						context = this,
-						clicked = $cols.data('clicked'),
-						row     = $row.closest('.b-finder__found').length > 0 ?
-						          $row.data('b_finder_link') :
-						          null;
+						$row = $(this),
+						row  = $row.data('b_finder_row');
 
-					if (!clicked) {
-						//
-						$cols.data(
-							'clicked',
-							setTimeout(
-								function() {
-									$cols.removeData('clicked');
-
-									//
-									if (row) {
-										row_expand.call(
-											row,
-											event,
-											true
-										);
-									}
-
-									//
-									row_expand.call(
-										context,
-										event,
-										true
-									);
-								},
-								200
-							)
-						);
-					} else if (clicked) {
-						if (clicked) {
-							//
-							clearInterval(clicked);
-
-							//
-							$cols.removeData('clicked');
-						}
-
+					if (!$row.hasClass('b-finder__row_expanded_yes')) {
 						//
 						if (row) {
-							row_select.call(row, event);
+							row_expand.call(
+								row,
+								event,
+								true
+							);
 						}
 
 						//
-						row_select.call(context, event);
+						row_expand.call(
+							this,
+							event,
+							true
+						);
 					}
+				}
+			);
+
+			// Double click at item
+			$window.delegate(
+				'.b-finder__row',
+				'dblclick',
+				function(event) {
+					var
+						$row = $(this),
+						row  = $row.data('b_finder_row');
+
+					//
+					if (row) {
+						row_select.call(
+							row,
+							event
+						);
+					}
+
+					//
+					row_select.call(
+						this,
+						event
+					);
 				}
 			);
 
@@ -605,10 +653,12 @@
 	 *
 	 * @param {Event}   event
 	 * @param {Boolean} first
+	 * @param {Boolean} no_scroll
 	 */
 	function
-		row_expand(event, first) {
-			first = first || false;
+		row_expand(event, first, no_scroll) {
+			first = first         || false;
+			no_scroll = no_scroll || false;
 
 			var
 				$row       = $(this),
@@ -679,26 +729,33 @@
 			}
 
 			// Select current row
-			if (!$row.hasClass('b-finder__row_selected_yes')) {
-				$row.addClass('b-finder__row_expanded_yes');
-			}
+			$row.addClass('b-finder__row_expanded_yes');
 
 			// Expand current group
 			$group.addClass('b-finder__group_expanded_yes');
 
-			if (mode == 'watch' && first) {
+			if (mode == 'watch' && first && !no_scroll) {
 				// Scroll columns block to expanded column
-				$cols.scrollLeft(
-					(
-						($col.css('width').replace('px', '') - 0) +
-						($col.css('margin-left').replace('px', '') - 0) +
-						($col.css('margin-right').replace('px', '') - 0)
-					) *
-					counter
+				$cols.data(
+					'b_finder_scroll',
+					setTimeout(
+						function() {
+							$cols.scrollLeft(
+								(
+									($col.css('width').replace('px', '') - 0) +
+									($col.css('margin-left').replace('px', '') - 0) +
+									($col.css('margin-right').replace('px', '') - 0)
+								) *
+								counter
+							);
+						},
+						200
+					)
 				);
 			}
 
 			if (mode == 'watch' && !first) {
+				// Scroll column to row
 				$col.scrollTop(
 					$row.offset().top -
 					$group.offset().top
@@ -732,8 +789,8 @@
 				$col     = $row.closest('.b-finder__col'),
 				$cols    = $col.closest('.b-finder__cols'),
 				multiple = $cols.data('b_finder_multiple'),
-				occupied = $cols.data('b_finder_occupied'),
 				handler  = $cols.data('b_finder_dblclick'),
+				scroll   = $cols.data('b_finder_scroll'),
 				params   = $cols.data('b_finder_params'),
 				clear    = params.finder_multiple && event.ctrlKey ||
 				           params.finder_multiple && event.metaKey ?
@@ -745,6 +802,11 @@
 				           'approve',
 				pid      = $group.data('id'),
 				id       = $row.data('id');
+
+			// Clear scroller timer
+			if (scroll) {
+				clearTimeout(scroll);
+			}
 
 			// If there`s no user`s handler or it`s not a function
 			// do nothing
@@ -855,7 +917,8 @@
 				'b-finder__row_cancel_yes'
 			);
 
-			row_expand.call(this, null, true);
+			// Draw «path» to selected row
+			row_expand.call(this, null, true, true);
 		}
 
 	/**
@@ -933,7 +996,7 @@
 					       .removeClass('b-finder__row_expandable_yes')
 					       .removeClass('b-finder__row_expanded_yes')
 					       .removeClass('b-finder__row_loading_yes')
-					       .data('b_finder_link', this);
+					       .data('b_finder_row', this);
 
 					// Highlight found symbols
 					if (length > 0) {
