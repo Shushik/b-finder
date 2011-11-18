@@ -2,17 +2,24 @@
 
 
 	/**
-	 * b-finder — viewer of tree structured data
+	 * b-finder
+	 *
+	 * @desc Column viewer of tree structured data
 	 *
 	 * @version 3.0
 	 * @author  Shushik <silkleopard@yandex.ru>
+	 * @page    http://github.com/Shushik/b-finder
+	 *
+	 * @requires jQuery 1.4+
 	 *
 	 * @public
 	 * @method
 	 *
 	 * @param {Number|String} id
 	 * @param {Object}        handlers
+	 *     @option
 	 * @param {Object}        params
+	 *     @option
 	 *
 	 * @return {Object}
 	 */
