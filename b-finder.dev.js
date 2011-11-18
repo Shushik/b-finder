@@ -644,7 +644,7 @@
 	 */
 	function
 		row_expand(event, first, no_scroll) {
-			first = first         || false;
+			first     = first     || false;
 			no_scroll = no_scroll || false;
 
 			var
@@ -661,7 +661,9 @@
 				mode       = $cols.hasClass('b-finder__cols_mode_search') ?
 				             'search' :
 				             'watch',
-				counter    = level - 1,
+				counter    = !expandable ?
+				             level - 2 :
+				             level - 1,
 				next       = $('.b-finder__row_id_' + pid, $cols).get(0),
 				handler    = $cols.data('b_finder_click');
 
@@ -905,7 +907,7 @@
 			);
 
 			// Draw «path» to selected row
-			row_expand.call(this, null, true, true);
+			row_expand.call(this, null, true);
 		}
 
 	/**
