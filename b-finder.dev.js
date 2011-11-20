@@ -111,14 +111,29 @@
 				'keydown.b_finder_hide',
 				function(event) {
 					var
-						$finder = $('.b-finder'),
-						$cols   = $('.b-finder__cols_active_yes'),
-						mode    = $cols.hasClass('b-finder__cols_mode_search') ?
-						          'search' :
-						          'watch',
-						code    = event.keyCode;
+						$finder    = $('.b-finder'),
+						$cols      = $('.b-finder__cols_active_yes'),
+						mode       = $cols.hasClass('b-finder__cols_mode_search') ?
+						             'search' :
+						             'watch',
+						code       = event.keyCode,
+						directions = {
+							38 : 'top',
+							39 : 'right',
+							40 : 'bottom',
+							37 : 'left'
+						};
 
-					if (code == 27 && mode == 'search') {
+					if (directions[code]) {
+						//
+						event.preventDefault();
+
+						row_go.call($cols, event, directions[code]);
+					} else if (code == 13) {
+						//
+						row_select.call(row_get.call($cols, 'last'), event);
+					} else if (code == 27 && mode == 'search') {
+						//
 						event.stopPropagation();
 
 						filters_off.call($cols.get(0), event);
@@ -179,7 +194,7 @@
 			$cols.data('b_finder_prescroll', true);
 
 			// Initiate first expanding
-			first = row_first.call($cols);
+			first = row_get.call($cols);
 
 			//
 			row_expand.call(first, null, true);
@@ -281,21 +296,18 @@
 					}
 
 					// Filter some useful keys
-					if (
-						$this.hasClass('b-finder__field') &&
-						code != 37 &&
-						code != 38 &&
-						code != 39 &&
-						code != 40 &&
-						code != 27
-					) {
-						$this.data(
-							'b_finder_search',
-							setTimeout(
-								$.proxy(filters_on, this),
-								300
-							)
-						);
+					if ($this.hasClass('b-finder__field')) {
+						if (code == 40) {
+							$this.blur();
+						} else if (code != 27) {
+							$this.data(
+								'b_finder_search',
+								setTimeout(
+									$.proxy(filters_on, this),
+									300
+								)
+							);
+						}
 					}
 				}
 			);
@@ -327,41 +339,17 @@
 				filters_off
 			);
 
-			// Hover at column with focus
-			$window.delegate(
-				'.b-finder__col',
-				'mouseover',
-				function(event) {
-					$(this).focus();
-				}
-			);
-
 			// Single click at item
 			$window.delegate(
 				'.b-finder__row',
 				'click',
 				function(event) {
-					var
-						$row = $(this),
-						row  = $row.data('b_finder_row');
-
-					if (!$row.hasClass('b-finder__row_expanded_yes')) {
-						//
-						if (row) {
-							row_expand.call(
-								row,
-								event,
-								true
-							);
-						}
-
-						//
-						row_expand.call(
-							this,
-							event,
-							true
-						);
-					}
+					//
+					row_expand.call(
+						this,
+						event,
+						true
+					);
 				}
 			);
 
@@ -370,18 +358,6 @@
 				'.b-finder__row',
 				'dblclick',
 				function(event) {
-					var
-						$row = $(this),
-						row  = $row.data('b_finder_row');
-
-					//
-					if (row) {
-						row_select.call(
-							row,
-							event
-						);
-					}
-
 					//
 					row_select.call(
 						this,
@@ -649,22 +625,23 @@
 
 			var
 				$row       = $(this),
-				$group     = $row.closest('.b-finder__group'),
+				$group     = $row.closest('.b-finder__group,.b-finder__found'),
 				$col       = $row.closest('.b-finder__col'),
 				$scroll    = $col.closest('.b-finder__scroll'),
 				$cols      = $scroll.closest('.b-finder__cols'),
 				expandable = $row.hasClass('b-finder__row_expandable_yes') ? true : false,
 				id         = $row.data('id'),
-				pid        = $group.data('id'),
+				pid        = $row.data('pid'),
 				level      = $col.data('level'),
 				scroll     = $cols.data('b_finder_prescroll'),
 				mode       = $cols.hasClass('b-finder__cols_mode_search') ?
 				             'search' :
 				             'watch',
-				counter    = !expandable ?
-				             level - 2 :
-				             level - 1,
-				next       = $('.b-finder__row_id_' + pid, $cols).get(0),
+				counter    = level - 2,
+				row        = $row.data('b_finder_row'),
+				next       = mode == 'search' ?
+				             null :
+				             $('.b-finder__row_id_' + pid, $cols).get(0),
 				handler    = $cols.data('b_finder_click');
 
 			if (first) {
@@ -672,7 +649,7 @@
 				$col.focus();
 
 				// Call user`s handler for click event
-				if (typeof handler == 'function') {
+				if (typeof handler == 'function' && !row) {
 					handler.call(
 						this,
 						event,
@@ -715,13 +692,25 @@
 
 				// Display columns block
 				$cols.addClass('b-finder__cols_active_yes');
+
+				//
+				if (mode == 'search' && row) {
+					row_expand.call(row, event, true);
+				}
 			}
 
 			// Select current row
 			$row.addClass('b-finder__row_expanded_yes');
 
+			// Select doubled row
+			if (row) {
+				$(row).addClass('b-finder__row_expanded_yes');
+			}
+
 			// Expand current group
-			$group.addClass('b-finder__group_expanded_yes');
+			if (mode == 'watch') {
+				$group.addClass('b-finder__group_expanded_yes');
+			}
 
 			if (mode == 'watch' && first && !no_scroll) {
 				// Scroll columns block to expanded column
@@ -743,21 +732,25 @@
 				);
 			}
 
-			if (mode == 'watch' && !first) {
+			if (
+				mode == 'watch' && !first ||
+				event && event.keyCode == 38 ||
+				event && event.keyCode == 40
+			) {
 				// Scroll column to row
 				$col.scrollTop(
 					$row.offset().top -
 					$group.offset().top
 				);
 
-				//
+				// Remove pre scroll setting
 				if (level == 1) {
 					$cols.removeData('b_finder_prescroll');
 				}
 			}
 
-			// Select next row
-			if (level > 1) {
+			// Call this function for the next row in «path»
+			if (mode == 'watch' && level > 1) {
 				row_expand.call(next, event, false);
 			}
 		}
@@ -790,7 +783,8 @@
 				           'cancel' :
 				           'approve',
 				pid      = $group.data('id'),
-				id       = $row.data('id');
+				id       = $row.data('id'),
+				row      = $row.data('b_finder_row');
 
 			// Clear scroller timer
 			if (scroll) {
@@ -813,7 +807,7 @@
 				// Turn on loader
 				$row.addClass('b-finder__row_loading_yes');
 
-				// Call user`s handler for double click event
+				//
 				handler.call(
 					this,
 					event,
@@ -838,34 +832,110 @@
 		}
 
 	/**
+	 *
+	 *
+	 * @private
+	 *
+	 * @param {String} direction
+	 */
+	function
+		row_go(event, direction) {
+			var
+				$cols = this,
+				mode  = $cols.hasClass('b-finder__cols_mode_search') ? 'search' : 'watch',
+				$row  = $(row_get.call(
+				                       mode == 'search' ?
+				                       $('.b-finder__found', $cols) :
+				                       this,
+				                       mode == 'search' ? 'first' : 'last'
+				        )),
+				$next = null;
+
+			if (direction == 'top') {
+				// Select previous row in group
+				$next = $row.prev();
+			} else if (direction == 'bottom') {
+				// Select next row in group
+				$next = $row.next();
+			} else if (
+				mode == 'watch' &&
+				$row.hasClass('b-finder__row_expandable_yes') &&
+				direction == 'right' ||
+				mode == 'watch' &&
+				direction == 'left' &&
+				$row.data('pid') != 'root'
+			) {
+				if (direction == 'right') {
+					// Choose firs row in a child group
+					$next = $(
+						row_get.call(
+							$('.b-finder__group_expanded_yes:last', $cols),
+							'first'
+						)
+					);
+				} else {
+					// Clean previous selection
+					$row.removeClass('b-finder__row_expanded_yes');
+
+					// Choose parent row
+					$next = $('.b-finder__row_id_' + $row.data('pid'), $cols);
+				}
+			}
+
+			// Turn on prescroll
+			$cols.data('b_finder_prescroll', true);
+
+			// Call expand function for the chosen row
+			if ($next && $next.length > 0) {
+				row_expand.call($next.get(0), event, true);
+			}
+		}
+
+	/**
 	 * Find first selected row or first row
 	 * in root group
 	 *
 	 * @private
 	 *
+	 * @param {String} order
+	 *
 	 * @return {Object}
 	 */
 	function
-		row_first() {
+		row_get(order, kind) {
+			order = order || 'first';
+
 			var
-				$cols = this,
-				first = null;
+				$this = this,
+				row   = null;
 
-			// Get the first selected row
-			first = $(
-				'.b-finder__row_selected_yes:first',
-				$cols
-			).get(0);
-
-			// Get any row
-			if (!first) {
-				first = $(
-					'.b-finder__group_id_root .b-finder__row:first',
-					$cols
+			// Get the first expanded row
+			if (!row) {
+				row = $(
+					'.b-finder__row_expanded_yes:last',
+					$this
 				).get(0);
 			}
 
-			return first;
+			// Get any row
+			if (!row) {
+				if (
+					$this.hasClass('b-finder__group') ||
+					$this.hasClass('b-finder__found')
+				) {
+					row = $(
+						'.b-finder__row',
+						$this
+					).get(0);
+				} else {
+					row = $(
+						'.b-finder__group_id_root .b-finder__row:first',
+						$this
+					).get(0);
+				}
+			}
+
+			return row;
 		}
 
 	/**
@@ -878,7 +948,8 @@
 			var
 				$row  = this,
 				$cols = $row.closest('.b-finder__cols'),
-				clear = $cols.data('b_finder_clear');
+				clear = $cols.data('b_finder_clear'),
+				row   = $row.data('b_finder_row');
 
 			// Clear previuos selected items
 			if (clear) {
@@ -895,8 +966,16 @@
 			// Remove selection from row or set it
 			if ($row.hasClass('b-finder__row_cancel_yes')) {
 				$row.removeClass('b-finder__row_selected_yes');
+
+				if (row) {
+					$(row).removeClass('b-finder__row_selected_yes');
+				}
 			} else {
 				$row.addClass('b-finder__row_selected_yes');
+
+				if (row) {
+					$(row).addClass('b-finder__row_selected_yes');
+				}
 			}
 
 			// Turn off loader
@@ -924,9 +1003,10 @@
 			// Turn off loader
 			$row.removeClass(
 				'b-finder__row_loading_yes'
-			).addClass(
-				'b-finder__row_expanded_yes'
 			);
+
+			// Draw «path» to selected row
+			row_expand.call(this, null, true);
 		}
 
 	/**
@@ -946,6 +1026,7 @@
 				$rows    = null,
 				$anti    = null,
 				$found   = $('.b-finder__found', $cols).empty(),
+				index    = 0,
 				length   = 0,
 				row      = '',
 				prow     = '',
@@ -987,6 +1068,11 @@
 					       .removeClass('b-finder__row_loading_yes')
 					       .data('b_finder_row', this);
 
+					// Set selection at the first element
+					if (index == 0) {
+						$row.addClass('b-finder__row_expanded_yes');
+					}
+
 					// Highlight found symbols
 					if (length > 0) {
 						$row.html(
@@ -1010,6 +1096,8 @@
 					}
 
 					$found.append($row);
+
+					index++;
 				});
 			}
 		}
@@ -1056,7 +1144,7 @@
 			);
 
 			// Get first row to select
-			first = row_first.call($cols);
+			first = row_get.call($cols, 'last');
 
 			// Expand rows
 			row_expand.call(

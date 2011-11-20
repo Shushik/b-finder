@@ -270,6 +270,7 @@ body
 .b-finder .b-finder__row_expanded_yes:hover
 {
 	background: #DCD5AE;
+	outline:    #DCD5AE solid 1px;
 }
 
 .b-finder .b-finder__row_selected_yes,
@@ -278,8 +279,7 @@ body
 	background: #C7F192;
 }
 
-.b-finder__row:hover,
-.b-finder__row_hovered_yes
+.b-finder__row:hover
 {
 	background: #FFFAE1;
 }
