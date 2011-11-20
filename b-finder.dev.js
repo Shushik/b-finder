@@ -393,6 +393,7 @@
 				          4,
 				curr    = 0,
 				width   = 0,
+				total   = 0,
 				$hat    = $('.b-finder__hat', this),
 				$cols   = $('<div class="b-finder__cols"></div>'),
 				$scroll = $('<div class="b-finder__scroll"></div>'),
@@ -438,9 +439,12 @@
 			// Get the «tree»
 			tree = handlers.load(params);
 
+			// Count tree items
+			total = tree.length;
+
 			// Iterate through the «tree»
-			for (index = 0; index < tree.total; index++) {
-				branch = tree.items[index];
+			for (index = 0; index < total; index++) {
+				branch = tree[index];
 				level  = branch.level;
 				name   = branch.name;
 				pid    = 'root';
