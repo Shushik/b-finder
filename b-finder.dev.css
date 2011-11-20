@@ -67,7 +67,7 @@ body
 	cursor:   pointer;
 	position: absolute;
 	top:      0;
-	right:    0.1em;
+	right:    0.3em;
 
 	color: #968A72;
 
@@ -87,18 +87,14 @@ body
 .b-finder__search
 {
 	position: absolute;
-	top:      6px;
-	left:     22px;
+	top:      5px;
+	left:     32px;
 
 	width:   160px;
 	padding: 1px 2px;
 
 	background: #FFF;
 	border:     #CDCDCD solid 1px;
-
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing:    border-box;
-	box-sizing:         border-box;
 }
 
 .b-finder__field
@@ -124,7 +120,7 @@ body
 	cursor:   pointer;
 	position: absolute;
 	top:      -2px;
-	left:     143px;
+	left:     149px;
 
 	color: #968A72;
 }
@@ -133,18 +129,14 @@ body
 {
 	cursor:   pointer;
 	position: absolute;
-	top:      3px;
-	left:     -20px;
+	top:      2px;
+	left:     -28px;
 
-	width:  14px;
-	height: 14px;
+	width:  18px;
+	height: 10px;
 
 	background: #C7F192;
 	border:     #CDCDCD solid 2px;
-
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing:    border-box;
-	border-sizing:      border-box;
 
 	-webkit-border-radius: 7px;
 	-moz-border-radius:    7px;
@@ -255,21 +247,23 @@ body
 .b-finder__row_expandable_yes
 {
 	position: relative;
+	z-index:  2;
 }
 
 .b-finder__row_expandable_yes:after
 {
-	font-family: Times, serif;
-	font-size:   1.5em;
-
-	content:  '›';
+	content:  '';
 	position: absolute;
-	top:      0;
-	right:    0;
+	top:      0.5em;
+	right:    0.3em;
+	z-index:  3;
 
-	padding: 0.1em 0.2em 0.2em 0.5em;
+	width:  0;
+	height: 0;
 
-	background: inherit;
+	border:             transparent solid 5px;
+	border-right-width: 0;
+	border-left-color:  #777;
 }
 
 .b-finder__row_expanded_yes,
@@ -296,10 +290,7 @@ body
 	background: #C7F192 url(b-finder__row_loading_yes.gif) repeat-x 0 center;
 }
 
-.b-finder__row_loading_yes:after
-{
-	background-image: none;
-}
+
 
 .b-finder__highlight
 {

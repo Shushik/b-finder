@@ -498,7 +498,7 @@
 				// Select chosen row(s)
 				if (
 					params.finder_selected &&
-					params.finder_selected.indexOf(id) > -1
+					$.inArray(params.finder_selected, id) > -1
 				) {
 					$row.addClass(
 						'b-finder__row_selected_yes'
