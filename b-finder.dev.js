@@ -481,7 +481,6 @@
 					params.finder_selected &&
 					$.inArray(id, params.finder_selected) > -1
 				) {
-					console.log('test');
 					$row.addClass(
 						'b-finder__row_selected_yes'
 					);
