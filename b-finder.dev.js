@@ -125,19 +125,20 @@
 						};
 
 					if (directions[code]) {
-						//
+						// Arrow keys navigation
 						event.preventDefault();
 
 						row_go.call($cols, event, directions[code]);
 					} else if (code == 13) {
-						//
-						row_select.call(row_get.call($cols, 'last'), event);
+						// Select by Enter key
+						row_select.call(row_get.call($cols, mode == 'search' ? 'first' : 'last'), event);
 					} else if (code == 27 && mode == 'search') {
-						//
+						// Clear search results and field
 						event.stopPropagation();
 
 						filters_off.call($cols.get(0), event);
 					} else if (code == 27) {
+						// Close Finder
 						finder_hide.call($finder);
 					}
 				}
@@ -813,8 +814,8 @@
 					event,
 					{
 						hide   : $.proxy(finder_hide, $cols.closest('.b-finder')),
-						done   : $.proxy(row_done,    $row),
-						undone : $.proxy(row_undone,  $row)
+						done   : $.proxy(row_done,    $row.get(0)),
+						undone : $.proxy(row_undone,  $row.get(0))
 					},
 					{
 						id         : id,
@@ -844,10 +845,10 @@
 				$cols = this,
 				mode  = $cols.hasClass('b-finder__cols_mode_search') ? 'search' : 'watch',
 				$row  = $(row_get.call(
-				                       mode == 'search' ?
-				                       $('.b-finder__found', $cols) :
-				                       this,
-				                       mode == 'search' ? 'first' : 'last'
+				           mode == 'search' ?
+				           $('.b-finder__found', $cols) :
+				           this,
+				           'last'
 				        )),
 				$next = null;
 
@@ -912,7 +913,7 @@
 			// Get the first expanded row
 			if (!row) {
 				row = $(
-					'.b-finder__row_expanded_yes:last',
+					'.b-finder__row_expanded_yes:' + order,
 					$this
 				).get(0);
 			}
@@ -929,7 +930,7 @@
 					).get(0);
 				} else {
 					row = $(
-						'.b-finder__group_id_root .b-finder__row:first',
+						'.b-finder__group_id_root .b-finder__row:' + order,
 						$this
 					).get(0);
 				}
@@ -946,7 +947,7 @@
 	function
 		row_done() {
 			var
-				$row  = this,
+				$row  = $(this),
 				$cols = $row.closest('.b-finder__cols'),
 				clear = $cols.data('b_finder_clear'),
 				row   = $row.data('b_finder_row');
