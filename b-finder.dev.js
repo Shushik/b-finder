@@ -10,7 +10,7 @@
 	 * @author  Shushik <silkleopard@yandex.ru>
 	 * @page    http://github.com/Shushik/b-finder
 	 *
-	 * @requires jQuery 1.4+
+	 * @requires jQuery 1.6+
 	 *
 	 * @example
 	 * <code>

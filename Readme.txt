@@ -3,7 +3,7 @@
 
 
 	Goods:
-	— Compatible with jQuery 1.4+;
+	— Compatible with jQuery;
 	— Simple to use;
 	— User defined handlers support.
 
@@ -12,7 +12,8 @@
 
 	— HTML;
 	— CSS;
-	— JavaScript.
+	— JavaScript;
+	— jQuery 1.6+.
 
 
 	Code example:
