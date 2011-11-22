@@ -60,17 +60,23 @@
 	The list of arguments inside .load() handler
 
 	 #  | value
-	===============================================================
+	=======================================================================
 	 1. | An object given in params attribute for .finder() method
-	===============================================================
+	-----------------------------------------------------------------------
+	 2. | An object which exists only if finder_async param is true.
+	    | Contains Finder own functions with the following keys:
+	    |
+	    | — done — shows finder after data for it is loaded, gets loaded
+	    |          data array as an attribute
+	=======================================================================
 
 
 	The list of arguments inside .click() handler
 
 	 #  | value
-	===============================================================
+	=======================================================================
 	 1. | Event object
-	---------------------------------------------------------------
+	-----------------------------------------------------------------------
 	 2. | Data object from Finder with the following keys:
 	    |
 	    | — id         — clicked row id
@@ -78,9 +84,9 @@
 	    | — name       — row name
 	    | — next       — next column number (to put content there)
 	    | — expandable — is row expandable or not
-	---------------------------------------------------------------
+	-----------------------------------------------------------------------
 	 3. | An object given in params attribute for .finder() method
-	===============================================================
+	=======================================================================
 
 
 	The list of arguments inside .dblclick() handler

@@ -65,7 +65,7 @@
 	 * @return {Object}
 	 */
 	$.fn.finder = function(id, handlers, params) {
-		params   = params   || {};
+		params   = params   ||{};
 		handlers = handlers || {
 			items_load : function() {return []}
 		};
@@ -73,16 +73,24 @@
 		var
 			$finder = this;
 
+		// Save id of current Finder instance
+		params['finder_id'] = id;
+
 		// If there`s no Finder on the page,
 		// create one
 		if ($finder.length == 0) {
 			$finder = finder_create();
 		}
 
-		// Display or hide Finder
 		if ($finder.hasClass('b-finder_hidden_yes')) {
-			finder_show.call($finder, id, handlers, params);
+			// Save params and handlers
+			$finder.data('params',   params);
+			$finder.data('handlers', handlers);
+
+			// Display Finder
+			finder_show.call($finder);
 		} else {
+			// Hide Finder
 			finder_hide.call($finder);
 		}
 
@@ -93,22 +101,22 @@
 	 * Show Finder
 	 *
 	 * @private
-	 *
-	 * @param {Number|String} id
-	 * @param {Object}        handlers
-	 * @param {Object}        params
 	 */
 	function
-		finder_show(id, handlers, params) {
+		finder_show() {
 			var
-				$finder = this,
-				$window = $(window),
-				$cols   = $('.b-finder__cols_id_' + id, $finder),
-				first   = null;
+				$finder  = this,
+				$window  = $(window),
+				$cols    = null,
+				params   = $finder.data('params'),
+				handlers = $finder.data('handlers');
+
+			// Try to get columns block with needed id
+			$cols = $('.b-finder__cols_id_' + params.finder_id, $finder),
 
 			// Close Finder by clicking at empty space
 			$window.bind(
-				'keydown.b_finder_hide',
+				'keydown.finder_keydown',
 				function(event) {
 					var
 						$finder    = $('.b-finder'),
@@ -186,22 +194,23 @@
 				''
 			);
 
-			// Load content and generate columns html
-			if ($cols.length == 0) {
-				$cols = cols_create.call($finder, id, handlers, params);
+			if ($cols.length != 0) {
+				cols_show.call($cols);
+			} else {
+				if (params.finder_async) {
+					// Async call of users loading handler
+					handlers.load.call(
+						$finder,
+						params,
+						{
+							done : $.proxy(cols_create, $finder)
+						}
+					);
+				} else {
+					// Sync call of users loading handler
+					$cols = cols_create.call($finder, handlers.load.call($finder, params));
+				}
 			}
-
-			// Scroll columns up to selected items
-			$cols.data('b_finder_prescroll', true);
-
-			// Initiate first expanding
-			first = row_get.call($cols);
-
-			//
-			row_expand.call(first, null, true);
-
-			// Show finder block
-			$finder.removeClass('b-finder_hidden_yes');
 		}
 
 	/**
@@ -215,7 +224,7 @@
 				$finder = this;
 
 			// Kill window event handler for closing Finder
-			$(window).unbind('keydown.b_finder_hide');
+			$(window).unbind('keydown.finder_keydown');
 
 			// Hide main wrapper
 			$finder.addClass('b-finder_hidden_yes');
@@ -288,7 +297,7 @@
 				function(event) {
 					var
 						$this = $(this),
-						timer = $this.data('b_finder_search'),
+						timer = $this.data('search'),
 						code  = event.keyCode;
 
 					// Clear timer set before
@@ -345,7 +354,6 @@
 				'.b-finder__row',
 				'click',
 				function(event) {
-					//
 					row_expand.call(
 						this,
 						event,
@@ -359,7 +367,6 @@
 				'.b-finder__row',
 				'dblclick',
 				function(event) {
-					//
 					row_select.call(
 						this,
 						event
@@ -371,35 +378,54 @@
 		}
 
 	/**
+	 * Show columns block and Finder
+	 */
+	function
+		cols_show() {
+			var
+				$cols   = this,
+				$finder = $cols.closest('.b-finder'),
+				first   = null;
+
+			// Scroll columns up to selected items
+			$cols.data('prescroll', true);
+
+			// Initiate first expanding
+			first = row_get.call($cols);
+
+			//
+			row_expand.call(first, null, true);
+
+			// Show finder block
+			$finder.removeClass('b-finder_hidden_yes');
+		}
+
+	/**
 	 * Create DOM for columns handler and save all
 	 * user given params and handlers
 	 *
 	 * @private
 	 *
-	 * @param {Number|String} id
-	 * @param {Object}        handlers
-	 * @param {Object}        params
+	 * @param tree
 	 *
 	 * @return {Object}
 	 */
 	function
-		cols_create(id, handlers, params) {
+		cols_create(tree) {
 			var
-				cols    = params.finder_cols &&
-				          typeof params.finder_cols == 'number' &&
-				          params.finder_cols < 5 &&
-				          params.finder_cols > 0 ?
-				          params.finder_cols :
-				          4,
-				curr    = 0,
-				width   = 0,
-				total   = 0,
-				$hat    = $('.b-finder__hat', this),
-				$cols   = $('<div class="b-finder__cols"></div>'),
-				$scroll = $('<div class="b-finder__scroll"></div>'),
-				$search = $('<div class="b-finder__found"></div>'),
-				levels  = {},
-				groups  = {};
+				cols     = 4,
+				curr     = 0,
+				width    = 0,
+				total    = 0,
+				$finder  = this,
+				$hat     = $('.b-finder__hat', $finder),
+				$cols    = $('<div class="b-finder__cols"></div>'),
+				$scroll  = $('<div class="b-finder__scroll"></div>'),
+				$search  = $('<div class="b-finder__found"></div>'),
+				levels   = {},
+				groups   = {},
+				params   = $finder.data('params'),
+				handlers = $finder.data('handlers');
 
 			var
 				id,
@@ -414,30 +440,28 @@
 				$row,
 				$group;
 
+			// Get number of columns
+			if (
+				params.finder_cols &&
+				params.finder_cols < 5 &&
+				params.finder_cols > 0
+			) {
+				cols = params.finder_cols;
+			}
+
 			// Insert columns block into finder window
 			$hat.after(
 				$cols.addClass(
-					'b-finder__cols_id_' + id
+					'b-finder__cols_id_' + params.finder_id
 				).addClass(
 					'b-finder__cols_x_' + cols
 				).addClass(
 					'b-finder__cols_mode_watch'
-				).data(
-					'b_finder_params',
-					params
 				)
 			);
 
-			// Save given handlers for further using
-			for (index in handlers) {
-				$cols.data('b_finder_' + index, handlers[index]);
-			}
-
 			// Insert scroll into columns block
 			$cols.append($scroll);
-
-			// Get the «tree»
-			tree = handlers.load(params);
 
 			// Count tree items
 			total = tree.length;
@@ -512,7 +536,8 @@
 				col_create.call($scroll, curr + 1);
 			}
 
-			return $cols;
+			// Display Finder
+			cols_show.call($cols);
 		}
 
 	/**
@@ -602,10 +627,10 @@
 				         'title',
 				         name.toLowerCase()
 				       ).data(
-				           {
-				               id  : id,
-				               pid : pid
-				           }
+				         {
+				            id  : id,
+				            pid : pid
+				         }
 				       ),
 				$group = this;
 
@@ -636,28 +661,26 @@
 				$col       = $row.closest('.b-finder__col'),
 				$scroll    = $col.closest('.b-finder__scroll'),
 				$cols      = $scroll.closest('.b-finder__cols'),
+				$finder    = $cols.closest('.b-finder'),
 				expandable = $row.hasClass('b-finder__row_expandable_yes') ? true : false,
 				id         = $row.data('id'),
 				pid        = $row.data('pid'),
 				level      = $col.data('level'),
-				scroll     = $cols.data('b_finder_prescroll'),
+				scroll     = $cols.data('prescroll'),
 				mode       = $cols.hasClass('b-finder__cols_mode_search') ?
 				             'search' :
 				             'watch',
 				counter    = level - 2,
-				row        = $row.data('b_finder_row'),
+				row        = $row.data('row'),
 				next       = mode == 'search' ?
 				             null :
 				             $('.b-finder__row_id_' + pid, $cols).get(0),
-				handler    = $cols.data('b_finder_click');
+				handlers   = $finder.data('handlers');
 
 			if (first) {
-				// Focus on the first selected element
-				$col.focus();
-
 				// Call user`s handler for click event
-				if (typeof handler == 'function' && !row) {
-					handler.call(
+				if (handlers.click && !row) {
+					handlers.click.call(
 						this,
 						event,
 						{
@@ -667,7 +690,7 @@
 							name       : $row.text(),
 							expandable : expandable
 						},
-						$cols.data('b_finder_params')
+						$finder.data('params')
 					);
 				}
 
@@ -752,7 +775,7 @@
 
 				// Remove pre scroll setting
 				if (level == 1) {
-					$cols.removeData('b_finder_prescroll');
+					$cols.removeData('prescroll');
 				}
 			}
 
@@ -777,21 +800,21 @@
 				$group   = $row.closest('.b-finder__group'),
 				$col     = $row.closest('.b-finder__col'),
 				$cols    = $col.closest('.b-finder__cols'),
-				multiple = $cols.data('b_finder_multiple'),
-				handler  = $cols.data('b_finder_dblclick'),
-				scroll   = $cols.data('b_finder_scroll'),
-				params   = $cols.data('b_finder_params'),
+				$finder  = $cols.closest('.b-finder'),
+				params   = $finder.data('params'),
+				handlers = $finder.data('handlers'),
 				clear    = params.finder_multiple && event.ctrlKey ||
 				           params.finder_multiple && event.metaKey ?
 				           false :
 				           true,
+				scroll   = $cols.data('scroll'),
 				next     = ($col.data('level') - 0) + 1,
 				action   = $row.hasClass('b-finder__row_selected_yes') ?
 				           'cancel' :
 				           'approve',
 				pid      = $group.data('id'),
 				id       = $row.data('id'),
-				row      = $row.data('b_finder_row');
+				row      = $row.data('row');
 
 			// Clear scroller timer
 			if (scroll) {
@@ -800,10 +823,10 @@
 
 			// If there`s no user`s handler or it`s not a function
 			// do nothing
-			if (typeof handler == 'function') {
+			if (handlers.dblclick) {
 				// Clear previous selections
 				if (clear && action == 'approve') {
-					$cols.data('b_finder_clear', true);
+					$cols.data('clear', true);
 				}
 
 				if (action == 'cancel') {
@@ -815,7 +838,7 @@
 				$row.addClass('b-finder__row_loading_yes');
 
 				//
-				handler.call(
+				handlers.dblclick.call(
 					this,
 					event,
 					{
@@ -839,7 +862,7 @@
 		}
 
 	/**
-	 *
+	 * Go to row
 	 *
 	 * @private
 	 *
@@ -890,7 +913,7 @@
 			}
 
 			// Turn on prescroll
-			$cols.data('b_finder_prescroll', true);
+			$cols.data('prescroll', true);
 
 			// Call expand function for the chosen row
 			if ($next && $next.length > 0) {
@@ -955,8 +978,8 @@
 			var
 				$row  = $(this),
 				$cols = $row.closest('.b-finder__cols'),
-				clear = $cols.data('b_finder_clear'),
-				row   = $row.data('b_finder_row');
+				clear = $cols.data('clear'),
+				row   = $row.data('row');
 
 			// Clear previuos selected items
 			if (clear) {
@@ -967,7 +990,7 @@
 					'b-finder__row_selected_yes'
 				);
 
-				$cols.removeData('b_finder_clear');
+				$cols.removeData('clear');
 			}
 
 			// Remove selection from row or set it
@@ -978,8 +1001,10 @@
 					$(row).removeClass('b-finder__row_selected_yes');
 				}
 			} else {
+				//
 				$row.addClass('b-finder__row_selected_yes');
 
+				//
 				if (row) {
 					$(row).addClass('b-finder__row_selected_yes');
 				}
@@ -1024,20 +1049,20 @@
 	function
 		filters_on() {
 			var
-				$this    = $(this),
-				$cols    = $(
-				             '.b-finder__cols_active_yes',
-				             $this.closest('.b-finder__window')
-				           ),
-				$row     = null,
-				$rows    = null,
-				$anti    = null,
-				$found   = $('.b-finder__found', $cols).empty(),
-				index    = 0,
-				length   = 0,
-				row      = '',
-				prow     = '',
-				needle   = '';
+				$this  = $(this),
+				$cols  = $(
+				           '.b-finder__cols_active_yes',
+				           $this.closest('.b-finder__window')
+				         ),
+				$row   = null,
+				$rows  = null,
+				$anti  = null,
+				$found = $('.b-finder__found', $cols).empty(),
+				index  = 0,
+				length = 0,
+				row    = '',
+				prow   = '',
+				needle = '';
 
 			// Switch mode to «search»
 			$cols.removeClass(
@@ -1073,7 +1098,7 @@
 					       .removeClass('b-finder__row_expandable_yes')
 					       .removeClass('b-finder__row_expanded_yes')
 					       .removeClass('b-finder__row_loading_yes')
-					       .data('b_finder_row', this);
+					       .data('row', this);
 
 					// Set selection at the first element
 					if (index == 0) {
