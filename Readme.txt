@@ -18,7 +18,6 @@
 
 	Code example:
 
-
 	<code>
 		$('.b-finder').finder(
 			'id_dqd',
@@ -119,6 +118,9 @@
 
 	 param           | value
 	=======================================================================
+	 finder_async    | True if you want to work with async data loading
+	                 | (from ajax)
+	-----------------------------------------------------------------------
 	 finder_holder   | True if you don`t need additional column at the end
 	-----------------------------------------------------------------------
 	 finder_multiple | True if you want multiselect to be on
