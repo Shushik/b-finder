@@ -123,6 +123,9 @@
 	-----------------------------------------------------------------------
 	 finder_holder   | True if you don`t need additional column at the end
 	-----------------------------------------------------------------------
+	 finder_static   | True if you want a static displaying of finder
+	                 | (inside of another block)
+	-----------------------------------------------------------------------
 	 finder_multiple | True if you want multiselect to be on
 	-----------------------------------------------------------------------
 	 finder_cols     | Number of columns per «page» from 2 to 4

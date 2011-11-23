@@ -78,8 +78,8 @@
 
 		// If there`s no Finder on the page,
 		// create one
-		if ($finder.length == 0) {
-			$finder = finder_create();
+		if ($finder.length == 0 || $finder.hasClass('b-finder-placeholder')) {
+			$finder = finder_create.call($finder);
 		}
 
 		if ($finder.hasClass('b-finder_hidden_yes')) {
@@ -110,6 +110,11 @@
 				$cols    = null,
 				params   = $finder.data('params'),
 				handlers = $finder.data('handlers');
+
+			// Turn on static mode
+			if (params.finder_static) {
+				$finder.addClass('b-finder_static_yes');
+			}
 
 			// Try to get columns block with needed id
 			$cols = $('.b-finder__cols_id_' + params.finder_id, $finder),
@@ -227,7 +232,11 @@
 			$(window).unbind('keydown.finder_keydown');
 
 			// Hide main wrapper
-			$finder.addClass('b-finder_hidden_yes');
+			$finder.addClass(
+				'b-finder_hidden_yes'
+			).removeClass(
+				'b-finder_static_yes'
+			);
 
 			// Hide current columns block
 			$(
@@ -249,6 +258,7 @@
 	function
 		finder_create() {
 			var
+				$this   = $(this),
 				$finder = $(
 							'<table class="b-finder b-finder_hidden_yes">' +
 								'<tr><td class="b-finder__valign">' +
@@ -273,7 +283,11 @@
 				$hide   = $('.b-finder__hide', $window);
 
 			// Create new Finder in document
-			$('body').append($finder);
+			if ($this.hasClass('b-finder-placeholder')) {
+				$this.replaceWith($finder);
+			} else {
+				$('body').append($finder);
+			}
 
 			// Close Finder by clicking at empty space around
 			$finder.click(function(event) {

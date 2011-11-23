@@ -19,6 +19,11 @@ body
 	height: 100%;
 }
 
+.b-finder_static_yes
+{
+	position: static;
+}
+
 .b-finder_hidden_yes
 {
 	display: none;
