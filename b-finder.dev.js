@@ -78,7 +78,7 @@
 
 		// If there`s no Finder on the page,
 		// create one
-		if ($finder.length == 0 || $finder.hasClass('b-finder-placeholder')) {
+		if ($finder.length == 0 || !$finder.hasClass('b-finder')) {
 			$finder = finder_create.call($finder);
 		}
 
@@ -283,7 +283,7 @@
 				$hide   = $('.b-finder__hide', $window);
 
 			// Create new Finder in document
-			if ($this.hasClass('b-finder-placeholder')) {
+			if ($this.length > 0) {
 				$this.replaceWith($finder);
 			} else {
 				$('body').append($finder);
