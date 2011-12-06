@@ -226,7 +226,9 @@
 	function
 		finder_hide() {
 			var
-				$finder = this;
+				$finder  = this,
+				params   = $finder.data('params'),
+				handlers = $finder.data('handlers');
 
 			// Kill window event handler for closing Finder
 			$(window).unbind('keydown.finder_keydown');
@@ -245,6 +247,11 @@
 			).removeClass(
 				'b-finder__cols_active_yes'
 			);
+
+			// Execute user defined handler for hiding
+			if (handlers.hide) {
+				handlers.hide.call($finder, params);
+			}
 		}
 
 
@@ -397,9 +404,11 @@
 	function
 		cols_show() {
 			var
-				$cols   = this,
-				$finder = $cols.closest('.b-finder'),
-				first   = null;
+				$cols    = this,
+				$finder  = $cols.closest('.b-finder'),
+				handlers = $finder.data('handlers'),
+				params   = $finder.data('params'),
+				first    = null;
 
 			// Scroll columns up to selected items
 			$cols.data('prescroll', true);
@@ -412,6 +421,11 @@
 
 			// Show finder block
 			$finder.removeClass('b-finder_hidden_yes');
+
+			// Execute user defined handler for show
+			if (handlers.show) {
+				handlers.show.call($finder, params);
+			}
 		}
 
 	/**
