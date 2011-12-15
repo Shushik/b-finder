@@ -89,6 +89,9 @@
 
 			// Display Finder
 			finder_show.call($finder);
+
+			//
+			$finder.focus();
 		} else {
 			// Hide Finder
 			finder_hide.call($finder);
@@ -106,7 +109,11 @@
 		finder_show() {
 			var
 				$finder  = this,
-				$window  = $(window),
+				$window  = $(
+				             $.browser.msie ?
+				             document.body :
+				             window
+				           ),
 				$cols    = null,
 				params   = $finder.data('params'),
 				handlers = $finder.data('handlers');
@@ -231,7 +238,11 @@
 				handlers = $finder.data('handlers');
 
 			// Kill window event handler for closing Finder
-			$(window).unbind('keydown.finder_keydown');
+			$(
+				$.browser.msie ?
+				document.body :
+				window
+			).unbind('keydown.finder_keydown');
 
 			// Hide main wrapper
 			$finder.addClass(
