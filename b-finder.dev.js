@@ -655,7 +655,7 @@
 				$row = $('<div class="b-finder__row b-finder__row_id_' + id + '"></div>').text(
 				         name
 				       ).attr(
-				         'title',
+				         'data-search',
 				         name.toLowerCase()
 				       ).data(
 				         {
@@ -1113,8 +1113,8 @@
 				// Search by word
 				if (length > 0) {
 					$rows = $(
-						'.b-finder__row[title^="' + needle.toLowerCase() + '"],' +
-						'.b-finder__row[title*=" ' + needle.toLowerCase() + '"]',
+						'.b-finder__row[data-search^="' + needle.toLowerCase() + '"],' +
+						'.b-finder__row[data-search*=" ' + needle.toLowerCase() + '"]',
 						$cols
 					);
 				} else {
