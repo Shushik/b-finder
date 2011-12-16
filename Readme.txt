@@ -48,8 +48,8 @@
 	============================================================
 	 id       | Number or string ID for current Finder instance
 	------------------------------------------------------------
-	 handlers | Three user handlers: load, click and dblclick.
-	          | Click is optional
+	 handlers | Five user handlers: .load, .show, .hide, .click
+	          | and .dblclick. .load and .dblclick are required
 	------------------------------------------------------------
 	 params   | Object with user params (ids, urls, etc)
 	============================================================
@@ -67,6 +67,22 @@
 	    |
 	    | — done — shows finder after data for it is loaded, gets loaded
 	    |          data array as an attribute
+	=======================================================================
+
+
+	The list of arguments inside .show() handler
+
+	 #  | value
+	=======================================================================
+	 1. | An object given in params attribute for .finder() method
+	=======================================================================
+
+
+	The list of arguments inside .hide() handler
+
+	 #  | value
+	=======================================================================
+	 1. | An object given in params attribute for .finder() method
 	=======================================================================
 
 
