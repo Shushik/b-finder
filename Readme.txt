@@ -94,13 +94,7 @@
 	=======================================================================
 	 1. | Event object
 	-----------------------------------------------------------------------
-	 2. | An object contains Finder own functions with the following keys:
-	    |
-	    | — hide   — closes Finder
-	    | — done   — for successful transaction ending
-	    | — undone — for unsuccessful transaction ending
-	-----------------------------------------------------------------------
-	 3. | Data object from Finder with the following keys:
+	 2. | Data object from Finder with the following keys:
 	    |
 	    | — id         — clicked row id
 	    | — pid        — row parend id
@@ -109,7 +103,13 @@
 	    | — action     — has two values: approve and cancel
 	    | — expandable — is row expandable or not
 	-----------------------------------------------------------------------
-	 4. | An object given in params attribute for .finder() method
+	 3. | An object given in params attribute for .finder() method
+	-----------------------------------------------------------------------
+	 4. | An object contains Finder own functions with the following keys:
+	    |
+	    | — hide   — closes Finder
+	    | — done   — for successful transaction ending
+	    | — undone — for unsuccessful transaction ending
 	=======================================================================
 
 

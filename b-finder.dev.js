@@ -109,11 +109,7 @@
 		finder_show() {
 			var
 				$finder  = this,
-				$window  = $(
-				             $.browser.msie ?
-				             document.body :
-				             window
-				           ),
+				$window  = $(document),
 				$cols    = null,
 				params   = $finder.data('params'),
 				handlers = $finder.data('handlers');
@@ -238,11 +234,7 @@
 				handlers = $finder.data('handlers');
 
 			// Kill window event handler for closing Finder
-			$(
-				$.browser.msie ?
-				document.body :
-				window
-			).unbind('keydown.finder_keydown');
+			$(document).unbind('keydown.finder_keydown');
 
 			// Hide main wrapper
 			$finder.addClass(
@@ -835,7 +827,11 @@
 	function
 		row_select(event) {
 			var
-				$row     = $(this),
+				$this = $(this),
+				row   = $this.data('row');
+
+			var
+				$row     = row ? $(row) : $this,
 				$group   = $row.closest('.b-finder__group'),
 				$col     = $row.closest('.b-finder__col'),
 				$cols    = $col.closest('.b-finder__cols'),
@@ -870,21 +866,16 @@
 
 				if (action == 'cancel') {
 					// Revert selection to cancel
-					$row.addClass('b-finder__row_cancel_yes');
+					$this.addClass('b-finder__row_cancel_yes');
 				}
 
 				// Turn on loader
-				$row.addClass('b-finder__row_loading_yes');
+				$this.addClass('b-finder__row_loading_yes');
 
 				//
 				handlers.dblclick.call(
 					this,
 					event,
-					{
-						hide   : $.proxy(finder_hide, $cols.closest('.b-finder')),
-						done   : $.proxy(row_done,    $row.get(0)),
-						undone : $.proxy(row_undone,  $row.get(0))
-					},
 					{
 						id         : id,
 						pid        : pid,
@@ -895,7 +886,12 @@
 						             true :
 						             false
 					},
-					params
+					params,
+					{
+						hide   : $.proxy(finder_hide, $cols.closest('.b-finder')),
+						done   : $.proxy(row_done,    this),
+						undone : $.proxy(row_undone,  this)
+					}
 				);
 			}
 		}
