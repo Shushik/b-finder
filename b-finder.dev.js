@@ -23,7 +23,7 @@
 	 *         },
 	 *         {
 	 *             param1 : 'value1',
-	 *             param2 : 'value2',
+	 *             param2 : 'value2'
 	 *         }
 	 *     );
 	 * </code>
@@ -31,38 +31,48 @@
 	 * @public
 	 * @method
 	 *
-	 * @param {Number|String} id
+	 * @param {Number|String} id for a Finder`s instance
 	 *
-	 * @param {Object}        handlers
-	 *     @option {Function} load     handler that loads content for columns structure generation
-	 *         @param {Object} a hash with properties given in .finder() method
+	 * @param {Object} user defined handlers for finder actions
+	 *     @option {Function} load — a handler, which loads a content for Finder
+	 *         @param {Object} a hash with user params given in $.finder()
+	 *         @param {Object} a hash with Finder`s own methods
+	 *             @option {Function} done — method that builds Finder`s DOM from a loaded json
+	 *                 @param {Array} loaded json array
 	 *
-	 *     @option {Function} click    handler for single click (optional)
-	 *         @param {Event}  event variable
+	 *     @option {Function} show
+	 *         @param {Object} a hash with Finder`s handlers
+	 *
+	 *     @option {Function} hide
+	 *         @param {Object} a hash with Finder`s handlers
+	 *
+	 *     @option {Function} click
+	 *         @param {Event} jquery event object
+	 *
 	 *         @param {Object} a hash with information about clicked row
-	 *         @param {Object} a hash with properties given in .finder() method
 	 *
-	 *     @option {Function} dblclick handler for double click
-	 *         @param {Event}  event variable
-	 *         @param {Object} a hash with several finder methods
+	 *         @param {Object} a hash with params, given in .finder() method
+	 *
+	 *         @param {Object} a hash with Finder`s handlers
+	 *             @option {Function} hide   close finder
 	 *             @option {Function} done   successful ending of selection
 	 *             @option {Function} undone unsuccessful ending of selection
-	 *             @option {Function} close  close finder
+	 *
+	 *     @option {Function} dblclick
+	 *         @param {Event} jquery event object
+	 *
 	 *         @param {Object} a hash with information about clicked row
-	 *         @param {Object} a hash with properties given in .finder() method
 	 *
-	 * @param {Object}        params
-	 *     @option {Boolean} finder_holder   true if you don`t need extra end empty column
-	 *     @option {Boolean} finder_multiple true if you want a multiselect mode
-	 *     @option {Number}  finder_cols     number of columns shown in one window (1 — 4)
-	 *     @option {Object}  an array with the row ids, that should be selected by default
-	 *     @option {Object}  a hash with text values for different ui elements
-	 *         @option {String} hat      title in the top of the window
-	 *         @option {String} hint     short hint in the bottom of the window
-	 *         @option {String} search   search field placeholder
-	 *         @option {String} selected title hint for filter of selected rows
+	 *         @param {Object} a hash with params, given in .finder() method
 	 *
-	 * @return {Object}
+	 *         @param {Object} a hash with Finder`s handlers
+	 *             @option {Function} hide   close finder
+	 *             @option {Function} done   successful ending of selection
+	 *             @option {Function} undone unsuccessful ending of selection
+	 *
+	 * @param {Object} user defined params. Params for finder have «finder_» prefix
+	 *
+	 * @return {jQuery}
 	 */
 	$.fn.finder = function(id, handlers, params) {
 		params   = params   ||{};
@@ -90,7 +100,7 @@
 			// Display Finder
 			finder_show.call($finder);
 
-			//
+			// Set a focus on a Finder`s block
 			$finder.focus();
 		} else {
 			// Hide Finder
@@ -145,6 +155,12 @@
 						event.preventDefault();
 
 						row_go.call($cols, event, directions[code]);
+					} else if (
+						code == 190 && event.ctrlKey ||
+						code == 190 && event.metaKey
+					) {
+						// Focus on search field
+						$('.b-finder__field', $finder).focus();
 					} else if (code == 13) {
 						// Select by Enter key
 						row_select.call(row_get.call($cols, mode == 'search' ? 'first' : 'last'), event);
@@ -203,6 +219,7 @@
 			);
 
 			if ($cols.length != 0) {
+				// Display the columns block
 				cols_show.call($cols);
 			} else {
 				if (params.finder_async) {
@@ -534,7 +551,7 @@
 				// Select chosen row(s)
 				if (
 					params.finder_selected &&
-					$.inArray(id, params.finder_selected) > -1
+					$.inArray(id, params.finder_selected) != -1
 				) {
 					$row.addClass(
 						'b-finder__row_expanded_yes'
@@ -607,7 +624,29 @@
 
 			return $col;
 		}
-	
+
+	/**
+	 * Scroll column to chosen row
+	 *
+	 * @param {String} mode
+	 */
+	function
+		col_scroll(mode) {
+			var
+				$row = $(this),
+				$col = $row.closest('.b-finder__col');
+
+			if (
+				mode == 'watch'
+			) {
+				// Scroll column to row
+				$col.scrollTop(
+					$row.offset().top -
+					$row.closest('.b-finder__group').offset().top
+				);
+			}
+		}
+
 	/**
 	 * Create group DOM
 	 *
@@ -677,142 +716,170 @@
 	 *
 	 * @private
 	 *
-	 * @param {Event}   event
-	 * @param {Boolean} first
-	 * @param {Boolean} no_scroll
+	 * @param {Event} event
 	 */
 	function
-		row_expand(event, first, no_scroll) {
-			first     = first     || false;
-			no_scroll = no_scroll || false;
+		row_expand(event) {
+			var
+				$this = $(this),
+				row   = $this.data('row');
 
 			var
-				$row       = $(this),
-				$group     = $row.closest('.b-finder__group,.b-finder__found'),
+				$row       = row ? $(row) : $this,
 				$col       = $row.closest('.b-finder__col'),
-				$scroll    = $col.closest('.b-finder__scroll'),
-				$cols      = $scroll.closest('.b-finder__cols'),
-				$finder    = $cols.closest('.b-finder'),
+				$finder    = $col.closest('.b-finder'),
 				expandable = $row.hasClass('b-finder__row_expandable_yes') ? true : false,
 				id         = $row.data('id'),
 				pid        = $row.data('pid'),
 				level      = $col.data('level'),
-				scroll     = $cols.data('prescroll'),
+				params     = $finder.data('params'),
+				handlers   = $finder.data('handlers');
+
+			// Call user`s handler for click event
+			if (handlers.click && !row) {
+				handlers.click.call(
+					this,
+					event,
+					{
+						id         : id,
+						pid        : pid,
+						next       : level + 1,
+						name       : $row.text(),
+						expandable : expandable
+					},
+					$row.closest('.b-finder').data('params'),
+					{
+						hide   : $.proxy(finder_hide,  $finder),
+						done   : $.proxy(row_expanded, this),
+						undone : $.proxy(row_undone,   this)
+					}
+				);
+			}
+
+			// In a synchronous mode call an expanding functions
+			if (!params.finder_async) {
+				row_expanded.call(this, event);
+			}
+		}
+
+	/**
+	 * Expand all parent groups and select all parent rows
+	 *
+	 * @private
+	 *
+	 * @param {Event} event
+	 */
+	function
+		row_expanded(event) {
+			event = event || null;
+
+			var
+				$this = $(this),
+				row   = $this.data('row');
+
+			var
+				$row       = row ? $(row) : $this,
+				$col       = $row.closest('.b-finder__col'),
+				$cols      = $col.closest('.b-finder__cols'),
+				expandable = $row.hasClass('b-finder__row_expandable_yes') ?
+				             true :
+				             false,
+				id         = $row.data('id'),
+				pid        = $row.data('pid'),
 				mode       = $cols.hasClass('b-finder__cols_mode_search') ?
 				             'search' :
 				             'watch',
-				counter    = level - 2,
-				row        = $row.data('row'),
-				next       = mode == 'search' ?
-				             null :
-				             $('.b-finder__row_id_' + pid, $cols).get(0),
-				handlers   = $finder.data('handlers');
+				params     = $cols.closest('.b-finder').data('params');
 
-			if (first) {
-				// Call user`s handler for click event
-				if (handlers.click && !row) {
-					handlers.click.call(
-						this,
-						event,
-						{
-							id         : id,
-							pid        : pid,
-							next       : level + 1,
-							name       : $row.text(),
-							expandable : expandable
-						},
-						$finder.data('params')
-					);
-				}
+			// Save selected row id
+			$cols.data('stopped', id);
 
-				// Remove previous selections from groups
+			// Remove previous selections from groups
+			$(
+				'.b-finder__group_expanded_yes',
+				$cols
+			).removeClass(
+				'b-finder__group_expanded_yes'
+			);
+
+			// Remove previous selections from rows
+			$(
+				'.b-finder__row_expanded_yes',
+				$cols
+			).removeClass(
+				'b-finder__row_expanded_yes'
+			);
+
+			// View child group
+			if (expandable) {
 				$(
-					'.b-finder__group_expanded_yes',
+					'.b-finder__group_id_' + id,
 					$cols
-				).removeClass(
+				).addClass(
 					'b-finder__group_expanded_yes'
 				);
-
-				// Remove previous selections from rows
-				$(
-					'.b-finder__row_expanded_yes',
-					$cols
-				).removeClass(
-					'b-finder__row_expanded_yes'
-				);
-
-				// View child group
-				if (expandable) {
-					$(
-						'.b-finder__group_id_' + id,
-						$cols
-					).addClass(
-						'b-finder__group_expanded_yes'
-					);
-				}
-
-				// Display columns block
-				$cols.addClass('b-finder__cols_active_yes');
-
-				//
-				if (mode == 'search' && row) {
-					row_expand.call(row, event, true);
-				}
 			}
 
-			// Select current row
-			$row.addClass('b-finder__row_expanded_yes');
+			// Display columns block
+			$cols.addClass('b-finder__cols_active_yes');
 
-			// Select doubled row
+			// Select current row
+			$this.addClass('b-finder__row_expanded_yes');
+
+			// Select real row (in search mode)
 			if (row) {
-				$(row).addClass('b-finder__row_expanded_yes');
+				$row.addClass('b-finder__row_expanded_yes');
 			}
 
 			// Expand current group
 			if (mode == 'watch') {
-				$group.addClass('b-finder__group_expanded_yes');
-			}
+				$row.
+				closest('.b-finder__group').
+				addClass('b-finder__group_expanded_yes');
 
-			if (mode == 'watch' && first && !no_scroll) {
-				// Scroll columns block to expanded column
-				$cols.data(
-					'b_finder_scroll',
-					setTimeout(
-						function() {
-							$cols.scrollLeft(
-								(
-									($col.css('width').replace('px', '') - 0) +
-									($col.css('margin-left').replace('px', '') - 0) +
-									($col.css('margin-right').replace('px', '') - 0)
-								) *
-								counter
-							);
-						},
-						200
-					)
-				);
-			}
 
-			if (
-				mode == 'watch' && !first ||
-				event && event.keyCode == 38 ||
-				event && event.keyCode == 40
-			) {
-				// Scroll column to row
-				$col.scrollTop(
-					$row.offset().top -
-					$group.offset().top
-				);
+				// Scroll column to selected row
+				if (!params || !params.finder_scroll_off) {
+					col_scroll.call($row.get(0), mode);
 
-				// Remove pre scroll setting
-				if (level == 1) {
-					$cols.removeData('prescroll');
+					$cols.data(
+						'scroll_timer',
+						setTimeout(
+							function() {
+								$cols.scrollLeft(
+									(
+										($col.css('width').replace('px', '') - 0) +
+										($col.css('margin-left').replace('px', '') - 0) +
+										($col.css('margin-right').replace('px', '') - 0)
+									) * (
+										$col.data('level') -
+										1
+									)
+								)
+							},
+							200
+						)
+					);
 				}
 			}
 
-			// Call this function for the next row in «path»
-			if (mode == 'watch' && level > 1) {
-				row_expand.call(next, event, false);
+			// Select all parent rows
+			if (mode == 'watch') {
+				while (pid && pid != 'root') {
+					$row = $('.b-finder__row_id_' + pid, $cols);
+					id   = $row.data('id');
+					pid  = $row.data('pid');
+
+					$row.addClass('b-finder__row_expanded_yes');
+
+					$row
+					.closest('.b-finder__group')
+					.addClass('b-finder__group_expanded_yes');
+
+					if (!params || !params.finder_scroll_off) {
+						col_scroll.call($row.get(0), mode);
+					}
+				}
 			}
 		}
 
@@ -888,9 +955,9 @@
 					},
 					params,
 					{
-						hide   : $.proxy(finder_hide, $cols.closest('.b-finder')),
-						done   : $.proxy(row_done,    this),
-						undone : $.proxy(row_undone,  this)
+						hide   : $.proxy(finder_hide,  $cols.closest('.b-finder')),
+						done   : $.proxy(row_selected, this),
+						undone : $.proxy(row_undone,   this)
 					}
 				);
 			}
@@ -967,15 +1034,21 @@
 	 * @return {Object}
 	 */
 	function
-		row_get(order, kind) {
+		row_get(order) {
 			order = order || 'first';
 
 			var
 				$this = this,
+				id    = $this.data('stopped'),
 				row   = null;
 
 			// Get the first expanded row
-			if (!row) {
+			if (id) {
+				row = $(
+					'.b-finder__row_id_' + id,
+					$this
+				);
+			} else {
 				row = $(
 					'.b-finder__row_expanded_yes:' + order,
 					$this
@@ -1009,7 +1082,7 @@
 	 * @private
 	 */
 	function
-		row_done() {
+		row_selected() {
 			var
 				$row  = $(this),
 				$cols = $row.closest('.b-finder__cols'),
@@ -1134,6 +1207,9 @@
 					       .removeClass('b-finder__row_expanded_yes')
 					       .removeClass('b-finder__row_loading_yes')
 					       .data('row', this);
+
+					// Remove a row`s id from a class
+					$row.removeClass('b-finder__row_id_' + $row.data('id'));
 
 					// Set selection at the first element
 					if (index == 0) {
