@@ -1,5 +1,6 @@
 
 	b-finder, javascript/jquery selector for tree structured data
+	Working example: http://silkleo.ru/fun/b-finder/
 
 
 	Goods:
